@@ -1,0 +1,56 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --stripe-a: #B3272D;
+  --stripe-b: #F5F1E8;
+  --stripe-c: #1E3A5F;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  font-family: var(--font-body);
+}
+
+/* Números financieros siempre en monoespaciada, como una vieja lista de precios */
+.figure {
+  font-family: var(--font-mono);
+  font-variant-numeric: tabular-nums;
+  letter-spacing: -0.02em;
+}
+
+.display {
+  font-family: var(--font-display);
+  letter-spacing: 0.01em;
+}
+
+/* Franja de poste de barbería: el elemento firma del diseño */
+.barber-stripe {
+  background-image: repeating-linear-gradient(
+    135deg,
+    var(--stripe-a) 0px,
+    var(--stripe-a) 10px,
+    var(--stripe-b) 10px,
+    var(--stripe-b) 20px,
+    var(--stripe-c) 20px,
+    var(--stripe-c) 30px
+  );
+}
+
+/* Respeta preferencia de movimiento reducido */
+@media (prefers-reduced-motion: reduce) {
+  * {
+    animation-duration: 0.001ms !important;
+    transition-duration: 0.001ms !important;
+  }
+}
+
+/* Foco visible para accesibilidad de teclado */
+:focus-visible {
+  outline: 2px solid #C9A227;
+  outline-offset: 2px;
+}
