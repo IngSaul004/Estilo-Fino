@@ -35,14 +35,14 @@ export default function Home() {
   const totals = totalsFor(transactions);
 
   return (
-    <main className="mx-auto max-w-5xl px-4 py-10 sm:px-8">
+    <main className="mx-auto max-w-5xl px-4 py-6 sm:px-8 sm:py-10">
       {/* Franja de poste de barbería como firma visual del encabezado */}
       <div className="barber-stripe mb-6 h-1.5 w-24 rounded-full" />
 
-      <header className="mb-10 flex flex-wrap items-end justify-between gap-4">
+      <header className="mb-6 flex flex-wrap items-end justify-between gap-4 sm:mb-10">
         <div>
           <p className="text-xs uppercase tracking-[0.3em] text-chrome">Estilo Fino</p>
-          <h1 className="display text-5xl leading-none sm:text-6xl">Control de Caja</h1>
+          <h1 className="display text-4xl leading-none sm:text-6xl">Control de Caja</h1>
         </div>
         <ThemeToggle />
       </header>
@@ -59,15 +59,20 @@ export default function Home() {
         <p className="text-sm text-chrome">Cargando movimientos...</p>
       ) : (
         <>
-          <SummaryCards totals={totals} />
+          {/* Registro hasta arriba: es lo que más se usa día a día,
+              sobre todo desde el celular, así que va primero. */}
+          <TransactionForm onCreated={load} />
 
-          <div className="mt-6 grid gap-6 lg:grid-cols-2">
+          <div className="mt-6">
+            <SummaryCards totals={totals} />
+          </div>
+
+          <div className="mt-6 grid grid-cols-1 gap-6 lg:grid-cols-2">
             <DailyChart data={dailySeries(transactions)} />
             <MonthlyTrendChart data={monthlySeries(transactions)} />
           </div>
 
-          <div className="mt-6 grid gap-6 lg:grid-cols-2">
-            <TransactionForm onCreated={load} />
+          <div className="mt-6">
             <TransactionList transactions={transactions} />
           </div>
         </>

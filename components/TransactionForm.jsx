@@ -48,7 +48,7 @@ export default function TransactionForm({ onCreated }) {
   return (
     <form
       onSubmit={handleSubmit}
-      className="rounded-2xl border border-chrome/20 bg-white/60 p-6 dark:bg-charcoal/60"
+      className="rounded-2xl border border-gold/40 bg-white/60 p-5 shadow-sm dark:bg-charcoal/60 sm:p-6"
     >
       <h3 className="display text-sm uppercase tracking-[0.2em] text-chrome mb-4">
         Registrar movimiento
@@ -61,7 +61,7 @@ export default function TransactionForm({ onCreated }) {
             setTipo("ingreso");
             setCategoria(CATEGORIAS_INGRESO[0]);
           }}
-          className={`flex-1 rounded-full py-2 transition-colors ${
+          className={`flex-1 rounded-full py-2.5 transition-colors sm:py-2 ${
             tipo === "ingreso" ? "bg-gold text-ink font-semibold" : "text-chrome"
           }`}
         >
@@ -73,7 +73,7 @@ export default function TransactionForm({ onCreated }) {
             setTipo("gasto");
             setCategoria(CATEGORIAS_GASTO[0]);
           }}
-          className={`flex-1 rounded-full py-2 transition-colors ${
+          className={`flex-1 rounded-full py-2.5 transition-colors sm:py-2 ${
             tipo === "gasto" ? "bg-pole-red text-ivory font-semibold" : "text-chrome"
           }`}
         >
@@ -81,7 +81,10 @@ export default function TransactionForm({ onCreated }) {
         </button>
       </div>
 
-      <div className="grid gap-4 sm:grid-cols-2">
+      {/* "grid-cols-1" como base evita que los campos se amontonen en una
+          sola fila en pantallas chicas (ver nota en SummaryCards.jsx).
+          A partir de "sm" pasan a 2 columnas. */}
+      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
         <label className="text-xs uppercase tracking-widest text-chrome">
           Fecha
           <input

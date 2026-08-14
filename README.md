@@ -9,11 +9,11 @@ y tema claro/oscuro.
 Para conectar una app web con Google Sheets hay 3 caminos posibles. Te explico
 por qué elegí el tercero:
 
-| Opción | Cómo funciona | Problema |
-|---|---|---|
-| A. Google Sheets API directo desde el navegador | El navegador llama a Google con OAuth | Expondrías credenciales en el código público y cada usuario tendría que iniciar sesión con Google. Mala idea para un negocio. |
-| B. Google Apps Script como "API" | Publicas un script de Apps Script como Web App | Rápido de armar, pero es lento, tiene límites de cuota bajos y es más difícil de asegurar. |
-| C. Backend propio con Service Account (elegido) | Next.js API Routes (funciones serverless en Vercel) usan una **cuenta de servicio** de Google para leer/escribir en la hoja | Las credenciales nunca llegan al navegador, es rápido, y es el patrón que usarías en producción real. |
+| Opción                                          | Cómo funciona                                                                                                               | Problema                                                                                                                      |
+| ----------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------- |
+| A. Google Sheets API directo desde el navegador | El navegador llama a Google con OAuth                                                                                       | Expondrías credenciales en el código público y cada usuario tendría que iniciar sesión con Google. Mala idea para un negocio. |
+| B. Google Apps Script como "API"                | Publicas un script de Apps Script como Web App                                                                              | Rápido de armar, pero es lento, tiene límites de cuota bajos y es más difícil de asegurar.                                    |
+| C. Backend propio con Service Account (elegido) | Next.js API Routes (funciones serverless en Vercel) usan una **cuenta de servicio** de Google para leer/escribir en la hoja | Las credenciales nunca llegan al navegador, es rápido, y es el patrón que usarías en producción real.                         |
 
 **Por eso esta app es un proyecto Next.js completo (no solo HTML/JS suelto):**
 las carpetas `app/api/` son funciones que corren en el servidor de Vercel,
@@ -83,6 +83,7 @@ cp .env.example .env.local
 ```
 
 Rellena:
+
 - `GOOGLE_SHEET_ID`: lo sacas de la URL de tu hoja:
   `https://docs.google.com/spreadsheets/d/AQUI_VA_EL_ID/edit`
 - `GOOGLE_SERVICE_ACCOUNT_EMAIL`: el `client_email` del JSON.
@@ -145,3 +146,83 @@ Pensada para una barbería, no genérica:
 - Agregar filtro por rango de fechas personalizado.
 - Agregar categorías configurables por ti en vez de la lista fija en
   `TransactionForm.jsx`.
+
+```
+estilo-fino
+├─ app
+│  ├─ api
+│  │  └─ transactions
+│  │     └─ route.js
+│  ├─ globals.css
+│  ├─ layout.js
+│  └─ page.js
+├─ components
+│  ├─ Charts.jsx
+│  ├─ SummaryCards.jsx
+│  ├─ ThemeToggle.jsx
+│  ├─ TransactionForm.jsx
+│  └─ TransactionList.jsx
+├─ jsconfig.json
+├─ lib
+│  ├─ dateHelpers.js
+│  └─ sheets.js
+├─ next.config.js
+├─ package-lock.json
+├─ package.json
+├─ postcss.config.js
+├─ README.md
+└─ tailwind.config.js
+
+```
+
+# Fix — totales/gráficas en $0.00 y reordenamiento móvil
+
+**Fecha:** 2026-08-14
+
+## Síntoma reportado
+
+Los movimientos se guardaban en Google Sheets, pero los totales (Hoy/Semana/Mes)
+mostraban siempre $0.00 y las gráficas aparecían vacías, aunque la lista de
+"Movimientos recientes" sí mostraba los registros.
+
+## Causa raíz
+
+`lib/sheets.js` guardaba la fecha con `valueInputOption: "USER_ENTERED"`, lo que
+hacía que Google Sheets interpretara `"2026-08-14"` como una fecha real y la
+reformateara al leerla como `"14/8/2026"` (locale es-MX). `lib/dateHelpers.js`
+usaba `parseISO()` de date-fns, que solo entiende formato ISO — con `"14/8/2026"`
+devolvía `Invalid Date`, por lo que todas las comparaciones (`isSameDay`,
+`isSameWeek`, `isSameMonth`) daban `false` y los totales/series de gráficas
+quedaban siempre en cero.
+
+## Fix aplicado
+
+1. `lib/sheets.js`: se antepone un apóstrofo (`"'" + fecha`) al escribir la
+   fecha, forzando a Sheets a guardarla como texto plano, sin reformateo.
+2. `lib/dateHelpers.js`: se agregó `parseFecha()`, un parser defensivo que
+   intenta `parseISO` primero y cae a formato `d/M/yyyy` como fallback, para
+   que las filas ya guardadas con el formato roto sigan funcionando sin
+   editarlas a mano en la hoja.
+3. Bug secundario encontrado: `SummaryCards.jsx`, `TransactionForm.jsx` y
+   `page.js` usaban `grid` sin una clase `grid-cols-1` base, lo que rompía el
+   layout en pantallas chicas (Tailwind no define columnas por defecto).
+   Se agregó `grid-cols-1` como base en los tres archivos.
+4. Por pedido del usuario: se movió `TransactionForm` (registro de
+   movimiento) hasta arriba de la página, antes de las tarjetas resumen y
+   las gráficas, ya que es la acción más usada día a día desde el celular.
+
+## Nota de seguridad
+
+El usuario pegó su `GOOGLE_PRIVATE_KEY` completa en el chat dentro de
+`.env.local`. Se le recomendó rotar la clave de la cuenta de servicio en
+Google Cloud Console y actualizarla en Vercel.
+
+## Archivos entregados (vía SendUserFile)
+
+`lib/sheets.js`, `lib/dateHelpers.js`, `app/page.js`,
+`components/SummaryCards.jsx`, `components/TransactionForm.jsx`
+
+## Pendiente / siguiente paso del usuario
+
+Reemplazar estos 5 archivos en su repo de GitHub y hacer redeploy en Vercel
+(o hacer push, si tiene auto-deploy conectado).

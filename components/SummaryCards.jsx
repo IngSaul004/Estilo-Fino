@@ -31,7 +31,11 @@ function Card({ label, data, featured }) {
 
 export default function SummaryCards({ totals }) {
   return (
-    <div className="grid gap-4 sm:grid-cols-3">
+    // "grid-cols-1" es la base para celular: sin ella, Tailwind no define
+    // ninguna columna en pantallas chicas y las 3 tarjetas se amontonan
+    // en una sola fila en vez de apilarse. sm:grid-cols-3 solo cambia
+    // ese valor a partir de pantallas medianas hacia arriba.
+    <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
       <Card label="Hoy" data={totals.hoy} featured />
       <Card label="Esta semana" data={totals.semana} />
       <Card label="Este mes" data={totals.mes} />
