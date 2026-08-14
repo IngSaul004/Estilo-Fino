@@ -79,7 +79,15 @@ export default function Home() {
       )}
 
       <footer className="mt-16 pb-6 text-center text-xs text-slate-600 dark:text-chrome">
-        Estilo Fino · Datos sincronizados con Google Sheets
+        CREADO POR{" "}
+        <a
+          href="https://www.quttadev.com/"
+          target="_blank"
+          rel="noopener noreferrer"
+          className="font-semibold text-gold hover:text-gold/80"
+        >
+          QUTTADEV.COM
+        </a>
       </footer>
     </main>
   );
