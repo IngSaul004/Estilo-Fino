@@ -48,9 +48,9 @@ export default function TransactionForm({ onCreated }) {
   return (
     <form
       onSubmit={handleSubmit}
-      className="rounded-2xl border border-gold/40 bg-white/60 p-5 shadow-sm dark:bg-charcoal/60 sm:p-6"
+      className="rounded-2xl border border-gold/60 bg-white p-5 shadow-sm dark:border-gold/40 dark:bg-charcoal/60 dark:shadow-none sm:p-6"
     >
-      <h3 className="display text-sm uppercase tracking-[0.2em] text-chrome mb-4">
+      <h3 className="display text-sm uppercase tracking-[0.2em] text-slate-600 dark:text-chrome mb-4">
         Registrar movimiento
       </h3>
 
@@ -62,7 +62,7 @@ export default function TransactionForm({ onCreated }) {
             setCategoria(CATEGORIAS_INGRESO[0]);
           }}
           className={`flex-1 rounded-full py-2.5 transition-colors sm:py-2 ${
-            tipo === "ingreso" ? "bg-gold text-ink font-semibold" : "text-chrome"
+            tipo === "ingreso" ? "bg-gold text-ink font-semibold" : "text-slate-600 dark:text-chrome"
           }`}
         >
           Ingreso
@@ -74,7 +74,7 @@ export default function TransactionForm({ onCreated }) {
             setCategoria(CATEGORIAS_GASTO[0]);
           }}
           className={`flex-1 rounded-full py-2.5 transition-colors sm:py-2 ${
-            tipo === "gasto" ? "bg-pole-red text-ivory font-semibold" : "text-chrome"
+            tipo === "gasto" ? "bg-pole-red text-ivory font-semibold" : "text-slate-600 dark:text-chrome"
           }`}
         >
           Gasto
@@ -85,7 +85,7 @@ export default function TransactionForm({ onCreated }) {
           sola fila en pantallas chicas (ver nota en SummaryCards.jsx).
           A partir de "sm" pasan a 2 columnas. */}
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-        <label className="text-xs uppercase tracking-widest text-chrome">
+        <label className="text-xs uppercase tracking-widest text-slate-600 dark:text-chrome">
           Fecha
           <input
             type="date"
@@ -96,7 +96,7 @@ export default function TransactionForm({ onCreated }) {
           />
         </label>
 
-        <label className="text-xs uppercase tracking-widest text-chrome">
+        <label className="text-xs uppercase tracking-widest text-slate-600 dark:text-chrome">
           Categoría
           <select
             value={categoria}
@@ -111,7 +111,7 @@ export default function TransactionForm({ onCreated }) {
           </select>
         </label>
 
-        <label className="text-xs uppercase tracking-widest text-chrome sm:col-span-2">
+        <label className="text-xs uppercase tracking-widest text-slate-600 dark:text-chrome sm:col-span-2">
           Descripción (opcional)
           <input
             type="text"
@@ -122,7 +122,7 @@ export default function TransactionForm({ onCreated }) {
           />
         </label>
 
-        <label className="text-xs uppercase tracking-widest text-chrome sm:col-span-2">
+        <label className="text-xs uppercase tracking-widest text-slate-600 dark:text-chrome sm:col-span-2">
           Monto
           <input
             type="number"

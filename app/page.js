@@ -41,7 +41,7 @@ export default function Home() {
 
       <header className="mb-6 flex flex-wrap items-end justify-between gap-4 sm:mb-10">
         <div>
-          <p className="text-xs uppercase tracking-[0.3em] text-chrome">Estilo Fino</p>
+          <p className="text-xs uppercase tracking-[0.3em] text-slate-600 dark:text-chrome">Estilo Fino</p>
           <h1 className="display text-4xl leading-none sm:text-6xl">Control de Caja</h1>
         </div>
         <ThemeToggle />
@@ -56,7 +56,7 @@ export default function Home() {
       )}
 
       {loading ? (
-        <p className="text-sm text-chrome">Cargando movimientos...</p>
+        <p className="text-sm text-slate-600 dark:text-chrome">Cargando movimientos...</p>
       ) : (
         <>
           {/* Registro hasta arriba: es lo que más se usa día a día,
@@ -78,7 +78,7 @@ export default function Home() {
         </>
       )}
 
-      <footer className="mt-16 pb-6 text-center text-xs text-chrome">
+      <footer className="mt-16 pb-6 text-center text-xs text-slate-600 dark:text-chrome">
         Estilo Fino · Datos sincronizados con Google Sheets
       </footer>
     </main>

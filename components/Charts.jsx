@@ -23,17 +23,24 @@ const tooltipStyle = {
   fontSize: 12,
 };
 
+// Los ejes y la rejilla de las gráficas son SVG (no clases de Tailwind), así
+// que no pueden usar "dark:". Por eso toman su color de las variables CSS
+// --chart-tick / --chart-grid definidas en globals.css, que sí cambian
+// entre tema claro y oscuro. Antes usaban "#8B93A1" fijo, que era casi
+// invisible sobre el fondo claro.
+const tickStyle = { fontSize: 11, fill: "var(--chart-tick)" };
+
 export function DailyChart({ data }) {
   return (
-    <div className="rounded-2xl border border-chrome/20 bg-white/60 p-6 dark:bg-charcoal/60">
-      <h3 className="display text-sm uppercase tracking-[0.2em] text-chrome mb-4">
+    <div className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm dark:border-chrome/20 dark:bg-charcoal/60 dark:shadow-none">
+      <h3 className="display text-sm uppercase tracking-[0.2em] text-slate-600 dark:text-chrome mb-4">
         Últimos 14 días
       </h3>
       <ResponsiveContainer width="100%" height={260}>
         <BarChart data={data} barGap={2}>
-          <CartesianGrid strokeDasharray="3 3" stroke="#8B93A122" />
-          <XAxis dataKey="label" tick={{ fontSize: 11, fill: "#8B93A1" }} />
-          <YAxis tick={{ fontSize: 11, fill: "#8B93A1" }} />
+          <CartesianGrid strokeDasharray="3 3" stroke="var(--chart-grid)" />
+          <XAxis dataKey="label" tick={tickStyle} />
+          <YAxis tick={tickStyle} />
           <Tooltip
             contentStyle={tooltipStyle}
             formatter={(value) => formatMoney(value)}
@@ -49,15 +56,15 @@ export function DailyChart({ data }) {
 
 export function MonthlyTrendChart({ data }) {
   return (
-    <div className="rounded-2xl border border-chrome/20 bg-white/60 p-6 dark:bg-charcoal/60">
-      <h3 className="display text-sm uppercase tracking-[0.2em] text-chrome mb-4">
+    <div className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm dark:border-chrome/20 dark:bg-charcoal/60 dark:shadow-none">
+      <h3 className="display text-sm uppercase tracking-[0.2em] text-slate-600 dark:text-chrome mb-4">
         Tendencia mensual (ganancia neta)
       </h3>
       <ResponsiveContainer width="100%" height={260}>
         <LineChart data={data}>
-          <CartesianGrid strokeDasharray="3 3" stroke="#8B93A122" />
-          <XAxis dataKey="label" tick={{ fontSize: 11, fill: "#8B93A1" }} />
-          <YAxis tick={{ fontSize: 11, fill: "#8B93A1" }} />
+          <CartesianGrid strokeDasharray="3 3" stroke="var(--chart-grid)" />
+          <XAxis dataKey="label" tick={tickStyle} />
+          <YAxis tick={tickStyle} />
           <Tooltip
             contentStyle={tooltipStyle}
             formatter={(value) => formatMoney(value)}

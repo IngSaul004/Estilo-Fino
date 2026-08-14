@@ -226,3 +226,65 @@ Google Cloud Console y actualizarla en Vercel.
 
 Reemplazar estos 5 archivos en su repo de GitHub y hacer redeploy en Vercel
 (o hacer push, si tiene auto-deploy conectado).
+
+# Fix — totales/gráficas en $0.00, layout móvil y contraste en tema claro
+
+**Fecha:** 2026-08-14
+
+## Ronda 1 — Síntoma: totales/gráficas en $0.00
+
+Causa raíz: `lib/sheets.js` guardaba la fecha con `valueInputOption:
+"USER_ENTERED"`, Google Sheets la convertía a fecha real y la devolvía
+reformateada (`"14/8/2026"`), rompiendo `parseISO()` en `lib/dateHelpers.js`
+(devolvía `Invalid Date`, todas las comparaciones daban `false`).
+
+Fix: apóstrofo inicial al escribir la fecha (fuerza texto plano) +
+`parseFecha()` defensivo en dateHelpers.js que soporta ISO y `d/M/yyyy`
+(compatibilidad con filas viejas ya guardadas mal).
+
+También en esta ronda: se movió `TransactionForm` hasta arriba de la página
+(pedido del usuario), y se corrigió `grid` sin `grid-cols-1` base en
+`SummaryCards.jsx`/`TransactionForm.jsx`/`page.js` (rompía el layout en
+pantallas chicas).
+
+## Ronda 2 — Síntoma: "fallas de diseño en tema claro"
+
+Diagnóstico con capturas de pantalla + `tailwind.config.js`:
+
+1. **Contraste insuficiente de `text-chrome`** (`#8B93A1`): ~2.75:1 contra
+   `ivory` (`#F5F1E8`), falla WCAG AA (necesita 4.5:1 texto normal / 3:1
+   texto grande). Contra `ink` (`#151922`, fondo oscuro) da ~5.9:1, por eso
+   en oscuro se veía bien y en claro las etiquetas casi no se leían. Fix:
+   `text-slate-600 dark:text-chrome` en todas las etiquetas/textos
+   secundarios (page.js, SummaryCards.jsx, TransactionForm.jsx,
+   TransactionList.jsx, ThemeToggle.jsx, Charts.jsx). Para los ejes de las
+   gráficas (SVG, no soportan `dark:`), se agregaron variables CSS
+   `--chart-tick` / `--chart-grid` en `globals.css`, redefinidas bajo `.dark`.
+2. **Tarjetas sin separación visual del fondo**: `bg-white/60` sobre
+   `bg-ivory` (`#F5F1E8`) se veía casi idéntico al fondo de página. Fix:
+   `bg-white` (opaco) + `border-slate-200` + `shadow-sm` en modo claro,
+   manteniendo `dark:bg-charcoal/60` sin sombra en oscuro.
+3. **Tarjeta "Hoy" con bug de tema**: en `SummaryCards.jsx`, `Card` featured
+   usaba `bg-charcoal text-ivory` SIN condicional de tema (el `dark:bg-charcoal`
+   que tenía era redundante/no-op). Resultado: en modo claro se veía como un
+   recuadro oscuro suelto entre tarjetas claras. Fix: `bg-gold/10` en modo
+   claro (tinte dorado suave, coherente con el acento de "ganancia") y
+   `dark:bg-charcoal` en oscuro; el texto ahora hereda `text-ink dark:text-ivory`
+   del body en vez de forzar `text-ivory` siempre.
+
+## Nota de seguridad (pendiente, ronda 1)
+
+El usuario pegó su `GOOGLE_PRIVATE_KEY` completa en el chat. Se le recomendó
+rotarla en Google Cloud Console y actualizarla en Vercel.
+
+## Archivos entregados en total (vía SendUserFile)
+
+`lib/sheets.js`, `lib/dateHelpers.js`, `app/page.js`, `app/globals.css`,
+`components/SummaryCards.jsx`, `components/TransactionForm.jsx`,
+`components/TransactionList.jsx`, `components/Charts.jsx`,
+`components/ThemeToggle.jsx`
+
+## Pendiente / siguiente paso del usuario
+
+Reemplazar los archivos en su repo de GitHub, commit + push (o redeploy
+manual en Vercel), y confirmar visualmente en tema claro y oscuro.

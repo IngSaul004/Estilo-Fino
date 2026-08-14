@@ -6,6 +6,19 @@
   --stripe-a: #B3272D;
   --stripe-b: #F5F1E8;
   --stripe-c: #1E3A5F;
+
+  /* Colores de las gráficas (ejes, rejilla): #8B93A1 ("chrome") se ve bien
+     sobre el fondo oscuro (--ink), pero tiene muy poco contraste sobre el
+     fondo claro (--ivory) -- por eso los textos de las gráficas casi no se
+     veían en tema claro. Estas variables permiten que Charts.jsx use un
+     tono más oscuro en tema claro y el tono original en tema oscuro. */
+  --chart-tick: #475569;
+  --chart-grid: rgba(71, 85, 105, 0.15);
+}
+
+.dark {
+  --chart-tick: #8B93A1;
+  --chart-grid: rgba(139, 147, 161, 0.15);
 }
 
 html {
