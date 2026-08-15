@@ -39,12 +39,10 @@ export default function TransactionForm({ onCreated }) {
       return;
     }
 
-    // Si registraron más de 1 (ej. "5 cortes"), se guarda como UN solo
-    // movimiento con el total ya sumado, y se deja una nota en la
-    // descripción para que quede claro que fue un registro agrupado.
-    const notaCantidad = cantidadNum > 1 ? `${cantidadNum}x` : "";
-    const descripcionFinal = [notaCantidad, descripcion].filter(Boolean).join(" · ");
-
+    // "Monto" que se manda es el TOTAL ya multiplicado (cantidad × precio
+    // unitario). "Cantidad" ahora tiene su propia columna en la hoja
+    // (Fecha|Tipo|Categoria|Descripcion|Cantidad|Monto), así que ya no
+    // hace falta anotarla dentro de la descripción.
     setLoading(true);
     try {
       const res = await fetch("/api/transactions", {
@@ -54,7 +52,8 @@ export default function TransactionForm({ onCreated }) {
           fecha,
           tipo,
           categoria,
-          descripcion: descripcionFinal,
+          descripcion,
+          cantidad: cantidadNum,
           monto: total,
         }),
       });

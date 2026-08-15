@@ -50,7 +50,9 @@ export default function TransactionList({ transactions, onDeleted }) {
               <div className="min-w-0">
                 <p className="font-medium">{t.categoria}</p>
                 <p className="truncate text-xs text-slate-600 dark:text-chrome">
-                  {t.fecha} {t.descripcion ? `· ${t.descripcion}` : ""}
+                  {t.fecha}
+                  {t.cantidad > 1 ? ` · ${t.cantidad}x` : ""}
+                  {t.descripcion ? ` · ${t.descripcion}` : ""}
                 </p>
               </div>
 
