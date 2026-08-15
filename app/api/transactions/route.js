@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { readTransactions, appendTransaction } from "@/lib/sheets";
+import { readTransactions, appendTransaction, deleteTransaction  } from "@/lib/sheets";
 
 // GET /api/transactions -> devuelve todos los movimientos de la hoja
 export async function GET() {
@@ -51,3 +51,17 @@ export async function POST(request) {
     );
   }
 }
+
+export async function DELETE(request, { params }) {
+  try {
+    await deleteTransaction(params.id);
+    return NextResponse.json({ ok: true });
+  } catch (err) {
+    console.error(err);
+    return NextResponse.json(
+      { ok: false, error: err.message },
+      { status: 500 }
+    );
+  }
+}
+ 

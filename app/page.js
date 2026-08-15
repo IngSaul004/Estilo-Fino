@@ -73,7 +73,7 @@ export default function Home() {
           </div>
 
           <div className="mt-6">
-            <TransactionList transactions={transactions} />
+            <TransactionList transactions={transactions} onDeleted={load} />
           </div>
         </>
       )}

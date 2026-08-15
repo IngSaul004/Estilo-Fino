@@ -288,3 +288,91 @@ rotarla en Google Cloud Console y actualizarla en Vercel.
 
 Reemplazar los archivos en su repo de GitHub, commit + push (o redeploy
 manual en Vercel), y confirmar visualmente en tema claro y oscuro.
+
+# Historial de fixes — Estilo Fino Control de Caja
+
+## Ronda 1 — Síntoma: totales/gráficas en $0.00
+
+Causa raíz: `lib/sheets.js` guardaba la fecha con `valueInputOption:
+"USER_ENTERED"`, Google Sheets la convertía a fecha real y la devolvía
+reformateada (`"14/8/2026"`), rompiendo `parseISO()` en `lib/dateHelpers.js`.
+
+Fix: apóstrofo inicial al escribir la fecha (fuerza texto plano) +
+`parseFecha()` defensivo en dateHelpers.js (soporta ISO y `d/M/yyyy` para
+filas viejas). También: `TransactionForm` movido hasta arriba de la página
+(pedido del usuario) y fix de `grid` sin `grid-cols-1` base (rompía layout
+en pantallas chicas).
+
+## Ronda 2 — Síntoma: fallas de diseño en tema claro
+
+1. `text-chrome` (#8B93A1) da ~2.75:1 de contraste contra `ivory`
+   (#F5F1E8), falla WCAG AA. Fix: `text-slate-600 dark:text-chrome` en
+   labels/textos secundarios; variables CSS `--chart-tick`/`--chart-grid`
+   en globals.css para los ejes SVG de las gráficas (no soportan `dark:`).
+2. Tarjetas `bg-white/60` sobre `bg-ivory` casi invisibles. Fix: `bg-white`
+   sólido + `border-slate-200` + `shadow-sm` en claro.
+3. Tarjeta "Hoy" tenía `bg-charcoal text-ivory` SIN condicional de tema (bug,
+   no diseño intencional) — se veía como recuadro oscuro suelto en modo
+   claro. Fix: `bg-gold/10` en claro, `dark:bg-charcoal` en oscuro, texto
+   hereda del body.
+
+## Ronda 3 — Nuevas funciones pedidas por el cliente
+
+1. **Borrar movimientos**: `lib/sheets.js` → `deleteTransaction(id)` usa
+   `values.clear` (vacía la fila, no la borra físicamente — las filas vacías
+   ya se filtran solas en `readTransactions`). Nueva ruta
+   `app/api/transactions/[id]/route.js` con `DELETE`. `TransactionList.jsx`
+   tiene botón de borrar con `window.confirm()` antes de eliminar. Limitación
+   conocida: solo se pueden borrar los 10 movimientos más recientes (los
+   únicos que muestra la lista).
+2. **Registro por cantidad** ("5 cortes" en vez de 5 registros): campo nuevo
+   `Cantidad` en `TransactionForm.jsx` (default 1, no rompe el flujo
+   anterior). Si cantidad > 1, se multiplica por el precio unitario
+   client-side y se guarda UN solo movimiento con el total, más una nota
+   "Nx" en la descripción. Sin cambios de esquema en la hoja ni en el
+   backend — decisión explícita para minimizar piezas nuevas.
+
+## Ronda 4 — Fecha por defecto debe ser siempre CDMX
+
+Bug: `new Date().toISOString().slice(0,10)` convierte a UTC; después de las
+6pm hora CDMX (UTC-6) ya "es" el día siguiente en UTC, así que el formulario
+ponía la fecha de mañana por las tardes/noches.
+
+Fix en `lib/dateHelpers.js`: `cdmxParts()` usa
+`Intl.DateTimeFormat("en-CA", { timeZone: "America/Mexico_City" })` para
+obtener año/mes/día de CDMX sin depender de la zona horaria del
+dispositivo. Nuevas funciones exportadas: `todayCDMXString()` (para el
+input de fecha del formulario) y `nowCDMX()` (Date object, usado como
+`referenceDate` por defecto en `totalsFor`, y como base de "hoy" en
+`dailySeries`/`monthlySeries`) — así "Hoy" siempre significa "hoy en CDMX"
+en toda la app, no solo en el formulario.
+
+## Nota de seguridad (pendiente desde ronda 1)
+
+El usuario pegó su `GOOGLE_PRIVATE_KEY` completa en el chat. Se le
+recomendó rotarla en Google Cloud Console y actualizarla en Vercel — no
+hay confirmación de que ya lo haya hecho.
+
+## Estructura de rutas API (importante para el usuario)
+
+```
+app/api/transactions/
+├── route.js          ← GET y POST
+└── [id]/
+    └── route.js       ← DELETE (entregado como "id-route.js", debe
+                           renombrarse a "route.js" dentro de esa carpeta)
+```
+
+## Archivos entregados en total (vía SendUserFile)
+
+`lib/sheets.js`, `lib/dateHelpers.js`, `app/page.js`, `app/globals.css`,
+`app/api/transactions/[id]/route.js`, `components/SummaryCards.jsx`,
+`components/TransactionForm.jsx`, `components/TransactionList.jsx`,
+`components/Charts.jsx`, `components/ThemeToggle.jsx`
+
+## Pendiente / siguiente paso del usuario
+
+Reemplazar los archivos en su repo de GitHub (ojo con la carpeta `[id]/`
+nueva), commit + push, redeploy en Vercel, y probar: borrar un movimiento
+de prueba, registrar con cantidad > 1, y verificar que la fecha por defecto
+sea la de hoy en CDMX sin importar la hora del día.

@@ -1,42 +1,69 @@
 "use client";
 
 import { useState } from "react";
+import { todayCDMXString } from "@/lib/dateHelpers";
 
 const CATEGORIAS_INGRESO = ["Corte", "Barba", "Corte + Barba", "Producto", "Otro"];
 const CATEGORIAS_GASTO = ["Renta", "Insumos", "Servicios", "Nómina", "Otro"];
 
 export default function TransactionForm({ onCreated }) {
   const [tipo, setTipo] = useState("ingreso");
-  const [fecha, setFecha] = useState(() => new Date().toISOString().slice(0, 10));
+  // Siempre la fecha de HOY en hora de Ciudad de México, sin importar la
+  // zona horaria del dispositivo que abra la app (ver lib/dateHelpers.js).
+  const [fecha, setFecha] = useState(todayCDMXString);
   const [categoria, setCategoria] = useState(CATEGORIAS_INGRESO[0]);
   const [descripcion, setDescripcion] = useState("");
   const [monto, setMonto] = useState("");
+  // "cantidad" es nuevo: por defecto 1, así el formulario se comporta EXACTAMENTE
+  // igual que antes si nadie la toca. Solo cuando es mayor a 1 (ej. "5 cortes")
+  // se multiplica por el precio unitario para armar el total.
+  const [cantidad, setCantidad] = useState("1");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
 
   const categorias = tipo === "ingreso" ? CATEGORIAS_INGRESO : CATEGORIAS_GASTO;
+  const cantidadNum = Number(cantidad) || 0;
+  const montoNum = Number(monto) || 0;
+  const total = cantidadNum * montoNum;
 
   async function handleSubmit(e) {
     e.preventDefault();
     setError("");
 
-    if (!monto || Number(monto) <= 0) {
-      setError("Ingresa un monto válido, mayor a cero.");
+    if (!monto || montoNum <= 0) {
+      setError("Ingresa un precio válido, mayor a cero.");
       return;
     }
+    if (!cantidad || cantidadNum < 1) {
+      setError("La cantidad debe ser al menos 1.");
+      return;
+    }
+
+    // Si registraron más de 1 (ej. "5 cortes"), se guarda como UN solo
+    // movimiento con el total ya sumado, y se deja una nota en la
+    // descripción para que quede claro que fue un registro agrupado.
+    const notaCantidad = cantidadNum > 1 ? `${cantidadNum}x` : "";
+    const descripcionFinal = [notaCantidad, descripcion].filter(Boolean).join(" · ");
 
     setLoading(true);
     try {
       const res = await fetch("/api/transactions", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ fecha, tipo, categoria, descripcion, monto }),
+        body: JSON.stringify({
+          fecha,
+          tipo,
+          categoria,
+          descripcion: descripcionFinal,
+          monto: total,
+        }),
       });
       const json = await res.json();
       if (!json.ok) throw new Error(json.error || "No se pudo guardar el movimiento.");
 
       setMonto("");
       setDescripcion("");
+      setCantidad("1");
       onCreated?.();
     } catch (err) {
       setError(err.message);
@@ -122,8 +149,22 @@ export default function TransactionForm({ onCreated }) {
           />
         </label>
 
-        <label className="text-xs uppercase tracking-widest text-slate-600 dark:text-chrome sm:col-span-2">
-          Monto
+        <label className="text-xs uppercase tracking-widest text-slate-600 dark:text-chrome">
+          Cantidad
+          <input
+            type="number"
+            inputMode="numeric"
+            step="1"
+            min="1"
+            value={cantidad}
+            onChange={(e) => setCantidad(e.target.value)}
+            className="mt-1 w-full rounded-lg border border-chrome/30 bg-transparent p-2 text-lg figure"
+            required
+          />
+        </label>
+
+        <label className="text-xs uppercase tracking-widest text-slate-600 dark:text-chrome">
+          {cantidadNum > 1 ? "Precio unitario" : "Monto"}
           <input
             type="number"
             inputMode="decimal"
@@ -137,6 +178,15 @@ export default function TransactionForm({ onCreated }) {
           />
         </label>
       </div>
+
+      {/* Solo aparece cuando cantidad > 1, para no estorbar en el uso normal
+          de "un movimiento a la vez" que ya tenías. */}
+      {cantidadNum > 1 && montoNum > 0 && (
+        <p className="mt-3 text-sm text-slate-600 dark:text-chrome">
+          {cantidadNum} × ${montoNum.toFixed(2)} ={" "}
+          <span className="figure font-semibold text-gold">${total.toFixed(2)}</span>
+        </p>
+      )}
 
       {error && <p className="mt-3 text-sm text-pole-red">{error}</p>}
 
